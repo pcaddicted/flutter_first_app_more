@@ -23,10 +23,9 @@ class TestWidget extends StatelessWidget{
         title: new Text('Flutter Demo'),
       ),
       body:new Center(
-        child: Image.network(
-          "http://pic29.nipic.com/20130511/9252150_174018365301_2.jpg",
-          width: 200.0,
-          height: 150.0,
+        child: RaisedButton(
+          onPressed: ()=>print('FlatButton pressed'),
+          child: Text('Button'),
         ), 
       ),
     );
