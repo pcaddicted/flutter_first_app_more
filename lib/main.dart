@@ -18,21 +18,16 @@ class MyApp extends StatelessWidget{
 class TestWidget extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return  new Scaffold(
-       appBar: new AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
+      appBar: new AppBar(
         title: new Text('Flutter Demo'),
       ),
       body:new Center(
-        child: Text(
-          "put your text here",
-          style: TextStyle(
-            color: Colors.blue,
-            fontSize: 16.0,
-            fontWeight: FontWeight.bold
-          ),), 
+        child: Image.network(
+          "http://pic29.nipic.com/20130511/9252150_174018365301_2.jpg",
+          width: 200.0,
+          height: 150.0,
+        ), 
       ),
     );
   }
