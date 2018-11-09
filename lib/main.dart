@@ -10,10 +10,70 @@ class MyApp extends StatelessWidget{
       theme: new ThemeData(
         primarySwatch: Colors.blue
       ),
-      home:new TestWidget()
+      home:new MessageForm()
     );
   }
 }
+
+class MessageForm extends StatefulWidget{
+  @override
+  State<StatefulWidget> createState() {
+    return _MessageFormState();
+    }
+}
+
+class _MessageFormState extends State<MessageForm>{
+  var editController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text('Flutter Demo'),
+      ),
+      body: new Center(
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: TextField(
+                controller: editController,
+              ),
+            ),
+            RaisedButton(
+              child: Text('click'),
+              onPressed:(){
+                showDialog(
+                  context: context,
+                  builder: (_){
+                    return AlertDialog(
+                        content:Text(editController.text), 
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text('Ok'),
+                            onPressed: ()=>Navigator.pop(context),
+                          )
+                        ],
+                      );
+                  }
+                );
+              },
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+    void dispose() {
+      // TODO: implement dispose
+      super.dispose();
+      editController.dispose();
+    }
+}
+
+
 
 class TestWidget extends StatelessWidget{
   @override
