@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       Building(BuildingType.restaurant, 'Chaiya Thai Restaurant', '72 Claremont Blvd'),
       Building(BuildingType.restaurant, 'La Ciccia', '291 30th St'),
 
-      // double ??�???
+      // double 一下
       Building(BuildingType.theater, 'CineArts at the Empire', '85 W Portal Ave'),
       Building(BuildingType.theater, 'The Castro Theater', '429 Castro St'),
       Building(BuildingType.theater, 'Alamo Drafthouse Cinema', '2550 Mission St'),
