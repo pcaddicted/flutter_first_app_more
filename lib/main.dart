@@ -2,108 +2,169 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(new MyApp());
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class Message{
+  final String msg;
+  final int timestamp;
+
+  Message(this.msg, this.timestamp);
+
+  @override
+  String toString() {
+    // TODO: implement toString
+    return 'Message {msg:$msg,timestamp:$timestamp}';
+  }
+}
+
+class MyApp extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'Flutter Demo',
-      theme: new ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
-        // counter didn't reset back to zero; the application is not restarted.
-        primarySwatch: Colors.blue,
+    return MaterialApp(
+      title: 'Flutter UX demo',
+      home: MessageListScreen(),
+    );
+  }
+
+}
+
+class AddMessageScreen extends StatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add message'),
       ),
-      home: new MyHomePage(title: 'Flutter Demo Home Page'),
+      body: MessageForm(),
+    );
+  }
+
+}
+
+class MessageForm extends StatefulWidget{
+  @override
+  State<StatefulWidget> createState() {
+    return _MessageFormState();
+  }
+}
+
+class _MessageFormState extends State<MessageForm>{
+  final editController = TextEditingController();
+  
+  @override
+  void dispose() {
+    super.dispose();
+    editController.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.only(right: 8.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Input message',
+                  contentPadding: EdgeInsets.all(0.0),
+                ),
+                style: TextStyle(
+                  fontSize: 22.0,
+                  color: Colors.black54
+                ),
+                controller: editController,
+                //自动获取焦点。这样在页面打开时就会自动弹出输入法
+                autofocus: true,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: (){
+              debugPrint('send ${editController.text}');
+              final msg = Message(
+                editController.text,
+                DateTime.now().millisecondsSinceEpoch
+              );
+              Navigator.pop(context,msg);
+            },
+            onDoubleTap:() => debugPrint('double tapped'),
+            onLongPress: () => debugPrint('long pressed'),
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 10.0,horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(5.0)
+              ),
+              child: Text('send'),
+            ),
+          )
+        ],
+      ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+//消息展示页面
+class MessageListScreen extends StatelessWidget{
+  final messageListKey = GlobalKey<_MessageListState>(debugLabel: 'messageListKey');
 
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Echo client'),
+      ),
+      body: MessageList(key: messageListKey),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AddMessageScreen())
+          );
+          debugPrint('result = $result');
+          if (result is Message) {
+            messageListKey.currentState.addMessage(result);
+          }
+        },
+        tooltip: 'AddMessage',
+        child: Icon(Icons.add),
+      ),
+    );
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class MessageList extends StatefulWidget{
+  MessageList({Key key}):super(key:key);
+  
+  @override
+  State<StatefulWidget> createState() {
+    return _MessageListState();
+  }
+}
 
-  void _incrementCounter() {
+class _MessageListState extends State<MessageList>{
+  final List<Message> messages = [];
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: messages.length,
+      itemBuilder: (context,index){
+        final msg = messages[index];
+        final subtitle = DateTime.
+                        fromMicrosecondsSinceEpoch(msg.timestamp)
+                        .toLocal()
+                        .toIso8601String();
+        return ListTile(
+          title: Text(msg.msg),
+          subtitle: Text(subtitle),
+        );
+      }
+    );
+  }
+  void addMessage(Message msg){
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return new Scaffold(
-      appBar: new AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: new Text(widget.title),
-      ),
-      body: new Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: new Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug paint" (press "p" in the console where you ran
-          // "flutter run", or select "Toggle Debug Paint" from the Flutter tool
-          // window in IntelliJ) to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Text(
-              'You have pushed the button this many times:',
-            ),
-            new Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: new Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+          messages.add(msg);
+        });
   }
 }
