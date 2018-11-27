@@ -35,11 +35,12 @@ class _FirstAppState extends State<FirstApp>{
       body: Center(
         child: RaisedButton(
           child: Text("first app"),
-          onPressed: (){
-            Navigator.push(
+          onPressed: () async {
+            var msg = await Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => SecondApp())
             );
+            debugPrint('msg = $msg');
           }
         ),
       ),
@@ -67,7 +68,7 @@ class SecondAppState extends State<SecondApp>{
         child: RaisedButton(
           child: Text("back"),
           onPressed: (){
-            Navigator.pop(context);
+            Navigator.pop(context,"message from second screen");
           },
         ),
       ),
