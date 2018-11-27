@@ -1,109 +1,117 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(new MyApp());
+class AnimationDemoView extends StatefulWidget {
+  @override
+  State createState() {
+    return _AnimationState();
+  }
+}
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class _AnimationState extends State<AnimationDemoView>
+    with SingleTickerProviderStateMixin {
+
+  static const padding = 16.0;
+
+  AnimationController controller;
+  Animation<double> left;
+
+  @override
+  void initState() {
+    super.initState();
+    // 只有在 initState 执行完，我们才能通过 MediaQuery.of(context) 获取
+    // mediaQueryData。这里通过创建一个 Future 从而在 Dart 事件队列里插入
+    // 一个事件，以达到延后执行的目的（类似于在 Android 里 post 一个 Runnable）
+    // 关于 Dart 的事件队列，读者可以参考 https://webdev.dartlang.org/articles/performance/event-loop
+    Future(_initState);
+  }
+
+  void _initState() {
+    controller = AnimationController(
+        duration: const Duration(milliseconds: 2000),
+        // 注意类定义的 with SingleTickerProviderStateMixin，提供 vsync 最简单的方法
+        // 就是继承一个 SingleTickerProviderStateMixin。这里的 vsync 跟 Android 里
+        // 的 vsync 类似，用来提供时针滴答，触发动画的更新。
+        vsync: this);
+
+    // 我们通过 MediaQuery 获取屏幕宽度
+    final mediaQueryData = MediaQuery.of(context);
+    final displayWidth = mediaQueryData.size.width;
+    debugPrint('width = $displayWidth');
+    left = Tween(begin: padding, end: displayWidth - padding).animate(controller)
+      ..addListener(() {
+        // 调用 setState 触发他重新 build 一个 Widget。在 build 方法里，我们根据
+        // Animatable<T> 的当前值来创建 Widget，达到动画的效果（类似 Android 的属性动画）。
+        setState(() {
+          // have nothing to do
+        });
+      })
+      // 监听动画状态变化
+      ..addStatusListener((status) {
+        // 这里我们让动画往复不断执行
+
+        // 一次动画完成
+        if (status == AnimationStatus.completed) {
+          // 我们让动画反正执行一遍
+          controller.reverse();
+        // 反着执行的动画结束
+        } else if (status == AnimationStatus.dismissed) {
+          // 正着重新开始
+          controller.forward();
+        }
+      });
+    controller.forward();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'Flutter Demo',
-      theme: new ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
-        // counter didn't reset back to zero; the application is not restarted.
-        primarySwatch: Colors.blue,
+    // 假定一个单位是 24
+    final unit = 24.0;
+    final marginLeft = left == null ? padding : left.value;
+
+    // 把 marginLeft 单位化
+    final unitizedLeft = (marginLeft - padding) / unit;
+    final unitizedTop = math.sin(unitizedLeft);
+    // unitizedTop + 1 是了把 [-1, 1] 之间的值映射到 [0, 2]
+    // (unitizedTop+1) * unit 后把单位化的值转回来
+    final marginTop = (unitizedTop + 1) * unit + padding;
+    return Container(
+      // 我们根据动画的进度设置圆点的位置
+      margin: EdgeInsets.only(left: marginLeft, top: marginTop),
+      // 画一个小红点
+      child: Container(
+        decoration: BoxDecoration(
+            color: Colors.red, borderRadius: BorderRadius.circular(7.5)),
+        width: 15.0,
+        height: 15.0,
       ),
-      home: new MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
 
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
+  void dispose() {
+    super.dispose();
+    controller.dispose();
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+void main() {
+  runApp(MyApp());
+}
 
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return new Scaffold(
-      appBar: new AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: new Text(widget.title),
+    return MaterialApp(
+      title: 'Flutter animation demo',
+      home: Scaffold(
+        appBar: AppBar(title: Text('Animation demo')),
+        body: AnimationDemoView(),
       ),
-      body: new Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: new Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug paint" (press "p" in the console where you ran
-          // "flutter run", or select "Toggle Debug Paint" from the Flutter tool
-          // window in IntelliJ) to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Text(
-              'You have pushed the button this many times:',
-            ),
-            new Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: new Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
